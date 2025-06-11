@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDTUBE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <meta property="og:image" content="https://i.ibb.co/nq2tx1zs/1013500798.jpg">
+  <link rel="shortcut icon" href="https://i.ibb.co/nq2tx1zs/1013500798.jpg">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'nebula-purple': '#8b5cf6',
+                        'nebula-dark': '#1a1a1a',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://zero-two.info/uploads/images/file-1749614430494-175992454.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            margin: 0;
+            padding-bottom: 80px; /* Aumentado para evitar sobreposição com footer */
+        }
+
+        .card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+            border: 1px solid #8b5cf6;
+            background: rgba(26, 26, 26, 0.9);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-download {
+            transition: all 0.3s ease;
+            background: linear-gradient(to right, #8b5cf6, #a78bfa);
+        }
+
+        .btn-download:hover {
+            background: linear-gradient(to right, #7c3aed, #9f67fa);
+        }
+
+        .btn-download-mp4 {
+            transition: all 0.3s ease;
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+        }
+
+        .btn-download-mp4:hover {
+            background: linear-gradient(to right, #2563eb, #4b8ffa);
+        }
+
+        .loader {
+            border-top-color: #8b5cf6;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .duration-badge {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .views-count::after {
+            content: ' visualizações';
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        @media (max-width: 640px) {
+            .views-count::after {
+                content: '';
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            footer {
+                padding: 0.5rem;
+            }
+            .download-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <header class="bg-nebula-dark/80 border-b border-nebula-purple/30">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col items-center">
+                <h1 class="text-4xl md:text-5xl font-bold text-center mb-2">
+                    <span class="text-white">RED</span>
+                    <span class="text-nebula-purple">TUBE</span>
+                </h1>
+                <p class="text-gray-400 text-sm md:text-base">Download De Músicas E Vídeos</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto">
+                <div class="relative flex">
+                    <label for="searchInput" class="sr-only">Buscar Músicas Ou Vídeos</label>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Insira Um Título" 
+                        class="w-full px-4 py-3 rounded-l-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-nebula-purple"
+                    >
+                    <button 
+                        id="searchBtn" 
+                        class="px-6 py-3 bg-nebula-purple text-white font-semibold rounded-r-lg hover:bg-purple-600 transition duration-300 flex items-center justify-center"
+                    >
+                        <i class="fas fa-search mr-2"></i>
+                        𝑩𝒖𝒔𝒄𝒂𝒓
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="resultsSection">
+            <div id="statusMessage" class="text-center py-12 hidden">
+                <p class="text-gray-400">Digite Algo E Clique Em Buscar!</p>
+            </div>
+            
+            <div id="loadingIndicator" class="hidden flex justify-center py-12">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+            </div>
+            
+            <div id="errorMessage" class="hidden text-center py-12">
+                <p class="text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i> <span id="errorText">Erro Ao Fazer A Busca, Tente Novamente.</span></p>
+            </div>
+            
+            <div id="resultsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            
+            <div id="totalDuration" class="hidden mt-8 text-center text-gray-400"></div>
+<!-- Adicionando o reprodutor de vídeo -->
+<div id="video-player" class="mt-8 mb-12 max-w-4xl mx-auto hidden">
+    <h2 class="text-2xl font-semibold text-white mb-4">ᖇᕮᑭᖇOᗞᑌTOᖇ ᗞᕮ ᐯIᗞᕮO</h2>
+    <div class="relative" style="padding-bottom: 56.25%;">
+        <iframe id="youtube-player" class="absolute top-0 left-0 w-full h-full rounded-lg border border-nebula-purple" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+</div>
+        </section>
+    </main>
+
+    <footer class="bg-nebula-dark/80 border-t border-nebula-purple/30 py-6">
+        <div class="container mx-auto px-4 text-center text-gray-400 text-sm">
+            <p>Redzin - <a href="https://kamuiapi.shop/" target="_blank" class="hover:text-nebula-purple transition duration-300"> REDTUBE</a></p>
+        </div>
+    </footer>
+
+    <script src="./script.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7457319815340424"
+     crossorigin="anonymous"></script>
+</body>
+</html>
