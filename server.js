@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 
 const app = express();
 const port = 3000;
-const API_KEY = 'dantes15s'; // Chave da API mantida no servidor
+const API_KEY = 'O8icsYnZwQ'; // Chave da API mantida no servidor
 
 // Configurar CORS
 app.use(cors());
