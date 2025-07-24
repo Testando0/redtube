@@ -75,37 +75,17 @@ router.get('/api/download', async (req, res) => {
     
 
 // Endpoint para download de MP4
-app.get('/api/download/mp4', async (req, res) => {
-    const videoUrl = req.query.url;
-    if (!videoUrl) {
-        return res.status(400).json({ error: 'Parâmetro "url" é obrigatório.' });
-    }
+router.get('/api/download/mp4', async (req, res) => {
+  const { query } = req.query;
+  if (!query) return res.status(400).json({ error: 'Parâmetro "query" não fornecido' });
 
-    try {
-        const apiResponse = await fetch(`https://kamuiapi.shop/api/download/mp4?url=${encodeURIComponent(videoUrl)}&apikey=${API_KEY}`);
-        if (!apiResponse.ok) {
-            const errorText = apiResponse.status === 403 ? 'Chave de API inválida ou acesso negado.' :
-                             apiResponse.status === 429 ? 'Limite de requisições excedido.' :
-                             `Erro HTTP ${apiResponse.status}: ${response.statusText}`;
-            throw new Error(errorText);
-        }
-
-        // Configurar cabeçalhos para download
-        const filename = `nebby_video_${Date.now()}.mp4`;
-        res.setHeader('Content-Type', apiResponse.headers.get('content-type') || 'video/mp4');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
-        // Encaminhar o fluxo de dados
-        apiResponse.body.pipe(res);
-    } catch (error) {
-        console.error('Erro no download MP4:', error.message);
-        res.status(500).json({ error: error.message || 'Erro ao gerar link de download MP4.' });
-    }
-});
-
-// Rota padrão para servir index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  try {
+    const endpoint = `https://api.nexfuture.com.br/api/downloads/youtube/playvideo/v2?query=${encodeURIComponent(query)}`;
+    const response = await axios.get(endpoint);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar vídeo do YouTube', details: err.message });
+  }
 });
 
 // Iniciar o servidor
