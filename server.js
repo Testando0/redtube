@@ -43,48 +43,50 @@ app.get('/api/search', async (req, res) => {
     }
 });
 // Endpoint para download de MP3
-router.get('/api/download', async (req, res) => {
-    const { query } = req; // O nome da música será passado como parâmetro de consulta
-    const musicName = query.name; // Exemplo: /play?nome=nome_da_musica
-
-    if (!musicName) {
-        return res.status(400).json({ error: 'Nome da música é obrigatório' });
+app.get('/api/download', async (req, res) => {
+    const videoUrl = req.query.url;
+    if (!videoUrl) {
+        return res.status(400).json({ error: 'Parâmetro "url" é obrigatório.' });
     }
 
     try {
-        // Montar a URL da API com o nome da música
-        const apiUrl = `https://api.nexfuture.com.br/api/downloads/youtube/play?query=${encodeURIComponent(musicName)}`;
-        
-        // Fazer a requisição para a API
-        const response = await axios.get(apiUrl);
-
-        if (response.data.status && response.data.resultado && response.data.resultado.audio) {
-            const audioUrl = response.data.resultado.audio;
-
-            // Redirecionar para o link do áudio
-            return res.redirect(audioUrl);
-        } else {
-            return res.status(404).json({ error: 'Áudio não encontrado' });
+        const response = await fetch(`https://api.nexfuture.com.br/api/downloads/youtube/play?query=${q}`);
+        const data = await response.json();
+        console.log('Resposta da API de download MP3:', data); // Log para depuração
+        if (!data || !data.download || !data.download.downloadLink) {
+            throw new Error('Link de download não disponível.');
         }
+
+        res.json({
+            downloadLink: data.download.downloadLink,
+            filename: data.download.filename || 'nebby_music.mp3'
+        });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao processar a solicitação' });
+        console.error('Erro no download MP3:', error.message);
+        res.status(500).json({ error: error.message || 'Erro ao gerar link de download MP3.' });
     }
 });
-    
 
 // Endpoint para download de MP4
-router.get('/api/download/mp4', async (req, res) => {
-  const { query } = req.query;
-  if (!query) return res.status(400).json({ error: 'Parâmetro "query" não fornecido' });
+app.get('/api/download/mp4', async (req, res) => {
+    const videoUrl = req.query.url;
+    if (!videoUrl) {
+        return res.status(400).json({ error: 'Parâmetro "url" é obrigatório.' });
+    }
 
-  try {
-    const endpoint = `https://api.nexfuture.com.br/api/downloads/youtube/playvideo/v2?query=${encodeURIComponent(query)}`;
-    const response = await axios.get(endpoint);
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({ error: 'Erro ao buscar vídeo do YouTube', details: err.message });
-  }
+    try {
+        const apiResponse = await fetch(`https://https://api.nexfuture.com.br/api/downloads/youtube/mp4?url=${q}`);
+        // Configurar cabeçalhos para download
+        const filename = `redtube_video_${Date.now()}.mp4`;
+        res.setHeader('Content-Type', apiResponse.headers.get('content-type') || 'video/mp4');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Encaminhar o fluxo de dados
+        apiResponse.body.pipe(res);
+    } catch (error) {
+        console.error('Erro no download MP4:', error.message);
+        res.status(500).json({ error: error.message || 'Erro ao gerar link de download MP4.' });
+    }
 });
 
 // Iniciar o servidor
