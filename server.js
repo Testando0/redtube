@@ -44,36 +44,35 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Endpoint para download de MP3
-app.get('/api/download', async (req, res) => {
-    const videoUrl = req.query.url;
-    if (!videoUrl) {
-        return res.status(400).json({ error: 'Parâmetro "url" é obrigatório.' });
+router.get('/api/download', async (req, res) => {
+    const { query } = req; // O nome da música será passado como parâmetro de consulta
+    const musicName = query.name; // Exemplo: /play?nome=nome_da_musica
+
+    if (!musicName) {
+        return res.status(400).json({ error: 'Nome da música é obrigatório' });
     }
 
     try {
-        const response = await fetch(`https://kamuiapi.shop/api/download/mp3?url=${encodeURIComponent(videoUrl)}&apikey=${API_KEY}`);
-        if (!response.ok) {
-            const errorText = response.status === 403 ? 'Chave de API inválida ou acesso negado.' :
-                             response.status === 429 ? 'Limite de requisições excedido.' :
-                             `Erro HTTP ${response.status}: ${response.statusText}`;
-            throw new Error(errorText);
-        }
+        // Montar a URL da API com o nome da música
+        const apiUrl = `https://api.nexfuture.com.br/api/downloads/youtube/play?query=${encodeURIComponent(musicName)}`;
+        
+        // Fazer a requisição para a API
+        const response = await axios.get(apiUrl);
 
-        const data = await response.json();
-        console.log('Resposta da API de download MP3:', data); // Log para depuração
-        if (!data || !data.download || !data.download.downloadLink) {
-            throw new Error('Link de download não disponível.');
-        }
+        if (response.data.status && response.data.resultado && response.data.resultado.audio) {
+            const audioUrl = response.data.resultado.audio;
 
-        res.json({
-            downloadLink: data.download.downloadLink,
-            filename: data.download.filename || 'nebby_music.mp3'
-        });
+            // Redirecionar para o link do áudio
+            return res.redirect(audioUrl);
+        } else {
+            return res.status(404).json({ error: 'Áudio não encontrado' });
+        }
     } catch (error) {
-        console.error('Erro no download MP3:', error.message);
-        res.status(500).json({ error: error.message || 'Erro ao gerar link de download MP3.' });
+        console.error(error);
+        return res.status(500).json({ error: 'Erro ao processar a solicitação' });
     }
 });
+    
 
 // Endpoint para download de MP4
 app.get('/api/download/mp4', async (req, res) => {
